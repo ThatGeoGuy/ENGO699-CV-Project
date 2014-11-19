@@ -4,7 +4,7 @@
 # Code to create points sets of basic geometric shapes
 
 import numpy as np
-from itertools import permutations
+from itertools import product
 
 def createCube(dimension, scale, centroid = None):
     """
@@ -36,5 +36,5 @@ def createCube(dimension, scale, centroid = None):
         centroid = np.array(centroid)
 
     space = list(np.linspace(-scale / 2, scale / 2, dimension))
-    pts   = np.array(list(set(permutations(space * 3, 3))))
+    pts   = np.array(list(product(space, repeat=3)))
     return centroid - pts

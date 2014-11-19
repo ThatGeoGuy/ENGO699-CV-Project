@@ -10,6 +10,9 @@ locally optimal projection.
 
 import numpy as np
 
+from engo699.geometry import centroid
+from engo699.shapes import createCube
+
 class WLOP(object):
     """
     This class is used to perform the weighted locally optimal projection,
@@ -30,9 +33,9 @@ class WLOP(object):
 
     # Normal methods
     def getInitialPoints(self):
-        pass
+        self.X = createCube(self.num_points, self.h, centroid(self.P))
 
     # Below are "off limits" methods. These shouldn't be called directly
     def __init__(self, pt_cloud):
-        pass
+        self.P = pt_cloud
 

@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-# tests/test_WLOP.py
+# tests/test_engo699_shapes.py
 # Jeremy Steward
-# Tests the functionality in engo699/filters/WLOP.py
+# Tests the functionality in engo699/shapes.py
 
 import unittest
 import numpy as np
 
-from engo699.shapes import createCube
+import engo699.shapes
 
-class test_createCubeOfPoints(unittest.TestCase):
+# Simplify some function names so we don't have namespace hell in our tests
+createCube = engo699.shapes.createCube
+
+class test_createCube(unittest.TestCase):
     """
-    Tests for the function createCubeOfPoints.
+    Tests for the function "createCube."
     Expected behaviour is listed in docstrings of member functions.
     """
-    def test_output_should_be_Nx3(self):
+    def test_createCube_output_should_be_Nx3(self):
         """
         The output from WLOP should be an Nx3 matrix, where N is the
         cube of the side-length. e.g. if side-length = 3, then N should
@@ -25,7 +28,7 @@ class test_createCubeOfPoints(unittest.TestCase):
 
         self.assertEqual(pts.shape[0], side_length ** 3)
 
-    def test_cube_centred_on_centroid(self):
+    def test_createCube_cube_centred_on_centroid(self):
         """
         The centroid of all the points in the cube output by the
         function should be the same as the centroid passed into the
