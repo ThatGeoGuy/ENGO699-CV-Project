@@ -102,25 +102,28 @@ class WLOP(object):
         # Up until here, nothing is different from standard LOP
         it = 0
         while np.any((Q - X) > self.TOL):
-            X = Q.copy()
-            for i, xi in enumerate(X):
-                # Calculate E1 term
-                alpha_over_vj = [self.alpha_ij(xi, pj) / self.v_j(pj) \
-                        for pj in self.P]
-                E1 = sum(pj * alpha_over_vj[j] / sum(alpha_over_vj) for j, pj in enumerate(self.P))
-
-                # Calculate E2 term
-                beta_times_wi = [self.beta_ij(xi, xii) * self.w_i(i, xi, X) \
-                        for ii, xii in enumerate(X) if i != ii]
-                E2 = sum((xi - xii) * beta_times_wi[ii] / sum(beta_times_wi) for ii, xii in X)
-                Q[i, :] = E1 + self.mu * E2
-
             if it >= self.MAX_ITER:
                 print("WARNING: WLOP - Reached max number of iterations.", file=sys.stderr)
                 print("WARNING: WLOP - Breaking loop and returning current projection.", file=sys.stderr)
                 break
+
+            X = Q.copy()
+            for i, xi in enumerate(X):
+                # Calculate E1 term
+                alpha_over_vj = [self.alpha_ij(xi, pj) / self.v_j(pj) for pj in self.P]
+                sum_alpha_over_vj = sum(alpha_over_vj)
+                E1 = sum(pj * alpha_over_vj[j] / sum_alpha_over_vj for j, pj in enumerate(self.P))
+
+                # Calculate E2 term
+                beta_times_wi = [self.beta_ij(xi, xii) * self.w_i(i, xi, X) \
+                        for ii, xii in enumerate(X) if i != ii]
+                sum_beta_times_wi = sum(beta_times_wi)
+                E2 = sum((xi - xii) * beta_times_wi[ii] / sum_beta_times_wi for ii, xii in X)
+                Q[i, :] = E1 + self.mu * E2
+
             it += 1
 
+        # DEBUG
         print("Completed projection with {} iterations".format(it), file=sys.stderr)
         return Q
 
