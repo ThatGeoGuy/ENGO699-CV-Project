@@ -22,7 +22,8 @@ def createCube(dimension, scale, centroid = None):
                     a cube with scale 1m should have a volume of 1 [m ** 3]
 
       centroid:     optional parameter. Specifies the point you want to centre
-                    the cube about.
+                    the cube about. Should be some iterable object with length
+                    equal to 3.
 
     Returns
     =======
