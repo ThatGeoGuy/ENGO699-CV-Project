@@ -14,9 +14,9 @@ from engo699.shapes import createCube
 
 def main(filepath):
     # pts = np.loadtxt(filepath)[:,:-1]
-    pts = createCube(500, 1.80, np.array([0,0,0]))
+    pts = createCube(20, 1.80, np.array([0,0,0]))
     template = WLOP(pts, 0.0001, 20)
-    projected_pts = template.computeProjection(int(pts.shape[0] * 0.65), 0.150, 0.48)
+    projected_pts = template.computeProjection(6500, 0.150, 0.48)
 
     # Plot both point cloud and projected point cloud
     fig1 = plt.figure(1)
