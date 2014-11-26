@@ -45,6 +45,17 @@ class WLOP(object):
         r_xi_to_xii[r_xi_to_xii == 0] = np.nan
         return (1 / (len(r_xi_to_xii) - 1)) + WLOP.theta(r_xi_to_xii, self.h)
 
+    def computePDistances(self):
+        d = np.zeros((len(self.P), len(self.P)))
+        # Yes I know I should use enumerate but there's no reason
+        # here to allocate for pi and pj every iteration when I can
+        # shave off precious runtime
+        for i in range(0, len(self.P)):
+            for j in range(i, len(self.P)):
+                d[i, j] = np.linalg.norm(self.P[i, :] - self.P[j, :], 2)
+            d[:, i] = d[i, :]
+        return d
+
     def getInitialPoints(self):
         X = createCube(
             int(self.num_pts ** (1 / 3)),
@@ -85,7 +96,7 @@ class WLOP(object):
         Q = np.zeros(X.shape)
 
         # This never changes, will only be computed once at the beginning
-        dist_pj_pjj = np.array([np.linalg.norm(self.P[0,:] - pj, 2) for pj in self.P])
+        dist_pj_pjj = self.computePDistances()
         v = np.array([self.weight_ij(row) for row in dist_pj_pjj])
 
         # The remaining iterations until convergence
@@ -123,7 +134,7 @@ class WLOP(object):
                     alpha_over_v = a / v[j, :]
 
                     # Calculate E1
-                    E1 += pj * (alpha_over_v[j, :] / \
+                    E1 += pj * (alpha_over_v[j] / \
                             np.sum(tmp for jj, tmp in enumerate(alpha_over_v) \
                                        if j != jj and not np.isnan(tmp)))
 
