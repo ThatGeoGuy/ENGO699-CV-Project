@@ -25,22 +25,24 @@ class WLOP(object):
         return np.exp(-1 * ((4 * r) / h) ** 2)
 
     # Normal methods
-    @np.vectorize
     def eta(self, r):
         return -r
 
-    @np.vectorize
     def deta_dr(self, r):
-        return -1
+        return -1 * np.ones(r.shape)
 
     def alpha_ij(self, r_xi_to_pj):
-        return WLOP.theta(r, self.h) / r
+        r_xi_to_pj[r_xi_to_pj == 0] = np.nan
+        return WLOP.theta(r_xi_to_pj, self.h) / r_xi_to_pj
 
     def beta_ij(self, r_xi_to_xii):
-        return WLOP.theta(r, self.h) * np.abs(self.deta_dr(r)) / r
+        r_xi_to_xii[r_xi_to_xii == 0] = np.nan
+        return WLOP.theta(r_xi_to_xii, self.h) * \
+                np.abs(self.deta_dr(r_xi_to_xii)) / r_xi_to_xii
 
     # Weight function
     def weight_ij(self, r_xi_to_xii):
+        r_xi_to_xii[r_xi_to_xii == 0] = np.nan
         return (1 / (len(r_xi_to_xii) - 1)) + WLOP.theta(r_xi_to_xii, self.h)
 
     def getInitialPoints(self):
@@ -49,7 +51,6 @@ class WLOP(object):
             (1 - self.h) / (1 + self.h),
             centroid(self.P)
         )
-        # X = self.P
         return X[:self.num_pts, :]
 
     def computeProjection(self, num_pts, h, mu):
@@ -83,9 +84,9 @@ class WLOP(object):
         X = self.getInitialPoints()
         Q = np.zeros(X.shape)
 
-        # This is done since these will never change
-        dist_pj_pjj = np.array([np.linalg.norm(pj - pjj, 2) for pj in self.P for pjj in self.P])
-        v = self.weight_ij(dist_pj_pjj)
+        # This never changes, will only be computed once at the beginning
+        dist_pj_pjj = np.array([np.linalg.norm(self.P[0,:] - pj, 2) for pj in self.P])
+        v = np.array([self.weight_ij(row) for row in dist_pj_pjj])
 
         # The remaining iterations until convergence
         # Up until here, nothing is different from standard LOP
@@ -102,7 +103,7 @@ class WLOP(object):
 
             for i, xi in enumerate(X):
                 dist_xi_pj  = np.array([np.linalg.norm(xi - pj, 2) for pj in self.P])
-                diff_xi_xii = np.array([xi - xii for xii in self.X])
+                diff_xi_xii = np.array([xi - xii for xii in X])
                 dist_xi_xii = np.array([np.linalg.norm(diff, 2) for diff in diff_xi_xii])
 
                 # (re)set our E1 and E2 terms to zero after each point calculation
@@ -114,28 +115,26 @@ class WLOP(object):
                 b = self.beta_ij(dist_xi_xii)
 
                 # Weights E1 -> v, E2 -> w
-                # v is defined above outside of the while loop, since they will
-                # always be the same
+                # v is below since it relies on the point pj
                 w = self.weight_ij(dist_xi_xii)
-
-                # NOTE: As per numpy these operations are element by element
-                alpha_over_v = a / v
                 beta_times_w = b * w
+
                 for j, pj in enumerate(self.P):
+                    alpha_over_v = a / v[j, :]
+
                     # Calculate E1
-                    E1 += pj * (alpha_over_v[j] / \
-                            np.sum(tmp for jj, tmp in enumerate(alpha_over_v) if j != jj))
+                    E1 += pj * (alpha_over_v[j, :] / \
+                            np.sum(tmp for jj, tmp in enumerate(alpha_over_v) \
+                                       if j != jj and not np.isnan(tmp)))
 
                 for ii, diff_ii in enumerate(diff_xi_xii):
                     E2 += diff_ii * (beta_times_w[ii] / \
-                            np.sum(tmp for iii, tmp in enumerate(beta_times_w) if ii != iii))
+                            np.sum(tmp for iii, tmp in enumerate(beta_times_w) \
+                                       if ii != iii and not np.isnan(tmp)))
 
                 Q[i, :] = E1 + self.mu * E2
             # Increment iterations and go to next iteration over point cloud
             it += 1
-
-        # DEBUG
-        print("Completed projection with {} iterations".format(it), file=sys.stderr)
         return Q
 
     # Below are "off limits" methods. These shouldn't be called directly
