@@ -85,7 +85,7 @@ class WLOP(object):
         """
         # This initialization is necessary to make some of the interim
         # functions simpler / easier
-        if mu < 0 or mu >= 0.5:
+        if not (0 <= mu < 0.50):
             print("ERROR: WLOP - mu must be in range [0, 0.5)", file=sys.stderr)
             return None
         self.h       = h
@@ -98,7 +98,11 @@ class WLOP(object):
 
         # This never changes, will only be computed once at the beginning
         dist_pj_pjj = self.computePDistances()
-        v = np.array([self.weight_ij(row) for row in dist_pj_pjj])
+        # Below is an optimization instead of the list-comprehension (since
+        # there doesn't exist a numpy array comprehension)
+        v = np.zeros(len(dist_pj_pjj))
+        for i, dist in enumerate(dist_pj_pjj):
+            v[i] = self.weight_ij(row)
 
         # The remaining iterations until convergence
         # Up until here, nothing is different from standard LOP
@@ -183,21 +187,3 @@ class WLOP(object):
         self.P        = pt_cloud.copy()
         self.TOL      = tolerance
         self.MAX_ITER = max_iter
-
-class LOP(WLOP):
-    """
-    Locally optimal projection as referenced by Lipman et al. All parameters
-    are weighted equally, and the eta function falls off much more slowly.
-    """
-    def eta(self, r):
-        return 1 / (3 * (r ** 3))
-
-    def deta_dr(self, r):
-        return -1 / (r ** 4)
-
-    # Both weighting factors are just equal to 1
-    def v_j(self, pj):
-        return 1
-
-    def w_i(self, i, xi, X):
-        return 1
