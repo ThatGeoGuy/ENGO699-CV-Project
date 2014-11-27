@@ -16,7 +16,10 @@ def main(filepath):
     # pts = np.loadtxt(filepath)[:,:-1]
     pts = createCube(20, 1.80, np.array([0,0,0]))
     template = WLOP(pts, 0.0001, 20)
-    projected_pts = template.computeProjection(6500, 0.150, 0.48)
+    projected_pts = template.computeProjection(2000, 1.000, 0.45)
+
+    # DEBUG
+    print(projected_pts)
 
     # Plot both point cloud and projected point cloud
     fig1 = plt.figure(1)
