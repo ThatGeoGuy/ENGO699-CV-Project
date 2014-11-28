@@ -57,13 +57,13 @@ class WLOP(object):
         return d
 
     def getInitialPoints(self):
-        # X = createCube(
-        #     int(self.num_pts ** (1 / 3)),
-        #     (1 - self.h) / (1 + self.h),
-        #     centroid(self.P)
-        # )
-        X = self.P[:self.num_pts, :].copy()
-        return X
+        X = createCube(
+            int(self.num_pts ** (1 / 3)),
+            (1 - self.h) / (1 + self.h),
+            centroid(self.P)
+        )
+        #X = self.P[:self.num_pts, :].copy()
+        return X[:self.num_pts, :].copy()
 
     def computeProjection(self, num_pts, h, mu):
         """
@@ -100,9 +100,10 @@ class WLOP(object):
         dist_pj_pjj = self.computePDistances()
         # Below is an optimization instead of the list-comprehension (since
         # there doesn't exist a numpy array comprehension)
-        v = np.zeros(len(dist_pj_pjj))
+        v = np.zeros((len(dist_pj_pjj), len(dist_pj_pjj)))
         for i, dist in enumerate(dist_pj_pjj):
-            v[i] = self.weight_ij(row)
+            v[i, :] = self.weight_ij(dist)
+        v = np.nansum(v, axis=1)
 
         # The remaining iterations until convergence
         # Up until here, nothing is different from standard LOP
@@ -115,7 +116,6 @@ class WLOP(object):
 
             # DEBUG
             print("Iteration {}.".format(it), file=sys.stderr)
-            X = Q.copy()
 
             for i, xi in enumerate(X):
                 dist_xi_pj  = np.linalg.norm(xi - self.P, 2, axis=1)
@@ -133,30 +133,31 @@ class WLOP(object):
                 # Weights E1 -> v, E2 -> w
                 # v is below since it relies on the point pj
                 w = self.weight_ij(dist_xi_xii)
+                alpha_over_v = a / v
                 beta_times_w = b * w
 
                 for j, pj in enumerate(self.P):
-                    if np.isnan(v[j,j]):
+                    if np.isnan(alpha_over_v[j]):
                         continue
-
-                    alpha_over_v = a / v[j, :]
 
                     # Calculate E1
                     E1 += pj * (alpha_over_v[j] / np.nansum(alpha_over_v))
 
                 for ii, diff_ii in enumerate(diff_xi_xii):
-                    if np.isnan(w[ii]):
+                    if np.isnan(beta_times_w[ii]):
                         continue
 
                     # Calculate E2
                     E2 += diff_ii * (beta_times_w[ii] / np.nansum(beta_times_w))
 
+                # DEBUG
+                print("E1 is:\n{}".format(E1))
+                print("E2 is:\n{}".format(E2))
+
                 Q[i, :] = E1 + self.mu * E2
             # Increment iterations and go to next iteration over point cloud
             it += 1
-
-        # DEBUG
-        print("Program completed in {} iterations.".format(it), file=sys.stderr)
+            X = Q.copy()
         return Q
 
     # Below are "off limits" methods. These shouldn't be called directly
