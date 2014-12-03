@@ -13,24 +13,18 @@ from engo699.filters.WLOP import WLOP
 from engo699.shapes import createCube
 
 def main(filepath):
-    # pts = np.loadtxt(filepath)[:,:-1]
-    pts = createCube(20, 1.80, np.array([0,0,0]))
-    template = WLOP(pts, 0.0001, 20)
-    projected_pts = template.computeProjection(2000, 1.000, 0.45)
+    pts = np.loadtxt(filepath)[:,:-1]
 
-    # DEBUG
-    print(projected_pts)
+    ## WLOP Stuff
+    # template = WLOP(pts, 0.0001, 20)
+    # projected_pts = template.computeProjection(6000, 1.100, 0.45)
 
     # Plot both point cloud and projected point cloud
-    fig1 = plt.figure(1)
-    ax = fig1.add_subplot(111, projection='3d')
-    plt.plot(pts[:,0], pts[:,1], pts[:,2], 'bo')
-    plt.plot(projected_pts[:,0], projected_pts[:,1], projected_pts[:,2], 'ro')
-    plt.show()
-
-    # DEBUG
-    # print("Writing projected points to D:/walking_projection.txt", file=sys.stderr)
-    # np.savetxt("D:/walking_projection.txt", projected_pts)
+    # fig1 = plt.figure(1)
+    # ax = fig1.add_subplot(111, projection='3d')
+    # plt.plot(pts[:,0], pts[:,1], pts[:,2], 'bo')
+    # plt.plot(projected_pts[:,0], projected_pts[:,1], projected_pts[:,2], 'ro')
+    # plt.show()
 
     return 0
 

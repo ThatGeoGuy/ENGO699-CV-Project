@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # engo699/filters/WLOP.py
 # Jeremy Steward
-# Code to perform the Weighted Locally Optimal Projection
 
-__doc__ = """
+"""
 This module defines functions / classes in order to perform the weighted
 locally optimal projection.
 """
@@ -57,13 +56,14 @@ class WLOP(object):
         return d
 
     def getInitialPoints(self):
+        # Initial set of points
         X = createCube(
-            int(self.num_pts ** (1 / 3)),
-            (1 - self.h) / (1 + self.h),
+            np.ceil(self.num_pts ** (1 / 3)),
+            self.h,
             centroid(self.P)
         )
-        #X = self.P[:self.num_pts, :].copy()
-        return X[:self.num_pts, :].copy()
+        X = X[:self.num_pts, :]
+        return X
 
     def computeProjection(self, num_pts, h, mu):
         """
@@ -114,9 +114,6 @@ class WLOP(object):
                 print("WARNING: WLOP - Breaking loop and returning current projection.", file=sys.stderr)
                 break
 
-            # DEBUG
-            print("Iteration {}.".format(it), file=sys.stderr)
-
             for i, xi in enumerate(X):
                 dist_xi_pj  = np.linalg.norm(xi - self.P, 2, axis=1)
                 diff_xi_xii = xi - X
@@ -149,10 +146,6 @@ class WLOP(object):
 
                     # Calculate E2
                     E2 += diff_ii * (beta_times_w[ii] / np.nansum(beta_times_w))
-
-                # DEBUG
-                print("E1 is:\n{}".format(E1))
-                print("E2 is:\n{}".format(E2))
 
                 Q[i, :] = E1 + self.mu * E2
             # Increment iterations and go to next iteration over point cloud
