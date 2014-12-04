@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# engo699/filters/radial_outlier_filter.py
+# engo699/filters/statsFilters.py
 # Jeremy Steward
 
 """
-A class which takes in a point cloud dataset and filters out
-outliers which do not have a set number of nearest neighbours
-within some radius.
+Defines classes and methods which takes in a point cloud dataset and filters
+out outliers which do not conform to the specified statistics or relationships
+within the data. (e.g. RadialOutlierFilter removes points which do not have the
+property of having K nearest neighbours within a given radius.
 """
 
 import numpy as np
@@ -19,7 +20,7 @@ class RadialOutlierFilter(object):
     """
 
     def __init__(self, points, num_neighbours, radius):
-        self.N                = num_neighbours
+        self.K                = num_neighbours
         self.radius           = radius
         self.kdtree           = spatial.KDTree(points)
         self.filtered_indices = None
@@ -49,13 +50,13 @@ class RadialOutlierFilter(object):
         self.filtered_indices = []
         for i, pt in enumerate(self.pts):
             dists, nn_indices = self.kdtree.query(
-                    pt, k=self.N, p=2, distance_upper_bound=self.radius)
+                    pt, k=self.K, p=2, distance_upper_bound=self.radius)
 
             # If we ask for e.g. 20 neighbours when we query for points,
             # and only 5 nearest neighbours within the distance_upper_bound
             # are found, then the rest of the distances in dists will be
             # represented by np.Inf. We can test for these via np.isinf
-            if (len(dists) - len(dists[np.isinf(dists)])) < self.N:
+            if (len(dists) - len(dists[np.isinf(dists)])) < self.K:
                 self.filtered_indices.append(i)
 
         return self.pts[
@@ -71,3 +72,15 @@ class RadialOutlierFilter(object):
             return None
         else:
             return len(self.filtered_indices)
+
+class NonPlanarOutlierFilter(object):
+    """
+    Removes outliers in point cloud data. A point is determined
+    as an outlier iff the estimated plane fit at the location of the
+    point with it's K nearest neighbours is within some given threshold.
+    """
+    
+    def __init__(self, points, K, threshold):
+        self.K = K
+        self.pts = points
+        self.threshold = threshold
