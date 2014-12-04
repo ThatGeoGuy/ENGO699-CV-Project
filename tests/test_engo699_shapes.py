@@ -43,3 +43,6 @@ class test_createCube(unittest.TestCase):
             (np.mean(pts[:,0]), np.mean(pts[:,1]), np.mean(pts[:,2])),
             centroid
         )
+
+if __name__ == '__main__':
+    unittest.main()

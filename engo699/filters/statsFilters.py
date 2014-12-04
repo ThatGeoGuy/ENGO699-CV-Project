@@ -28,9 +28,8 @@ class RadialOutlierFilter(object):
     @property
     def pts(self):
         """
-        Converts the KD-Tree with all the points in it to an Nx3
-        matrix of points. Rather, it just returns the original point
-        cloud that was input into the class.
+        Converts the KD-Tree with all the points in it to the
+        original point cloud that was input into the class.
         """
         return self.kdtree.data
 
@@ -43,7 +42,7 @@ class RadialOutlierFilter(object):
         """
         Performs the actual filtering of points.
         We search the KDTree for all nearest neighbours around a given point,
-        and if there isn't at least N points nearby, then we return false,
+        and if there isn't at least K points nearby, then we return false,
         else we return true. The list will tell us row by row in self.pts
         which points we keep and which we filter.
         """
@@ -79,8 +78,41 @@ class NonPlanarOutlierFilter(object):
     as an outlier iff the estimated plane fit at the location of the
     point with it's K nearest neighbours is within some given threshold.
     """
-    
+
     def __init__(self, points, K, threshold):
         self.K = K
-        self.pts = points
+        self.kdtree = spatial.KDTree(points)
         self.threshold = threshold
+
+    @property
+    def pts(self):
+        """
+        Converts the KD-Tree with all the points in it to the
+        original point cloud that was input into the class.
+        """
+        return self.kdtree.data
+
+    @pts.setter
+    def pts(self, new_points):
+        self.kdtree = spatial.KDTree(new_points)
+        return
+
+    def filterPoints(self):
+        """
+        Performs the actual filtering of the points.
+        Search each point for the nearest neighbours, fit a plane to
+        the point and the K nearest neighbours, and if the variance
+        of the plane fit is greater than our threshold we filter
+        the point.
+        """
+        self.filtered_indices = []
+        for i, pt in enumerate(self.pts):
+            dists, nn_indices = self.kdtree.query(pt, k=self.K)
+
+            normal, variance = fitToPlane(self.pts[nn_indices, :])
+
+            if variance > self.threshold:
+                self.filtered_indices = []
+
+        return self.pts[
+                np.all(self.pts != self.pts[self.filtered_indices, :], axis=1), :].copy()

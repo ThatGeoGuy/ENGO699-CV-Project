@@ -39,7 +39,7 @@ class TestFitPlaneTo(unittest.TestCase):
         cardinal_plane_y[:, 1] = 0
         cardinal_plane_z[:, 2] = 0
 
-        planes = (cardinal_plane_x, cardinal_plane_x, cardinal_plane_x)
+        planes = (cardinal_plane_x, cardinal_plane_y, cardinal_plane_z)
         axes   = (x_axis, y_axis, z_axis)
 
         for plane_cloud, ax in zip(planes, axes):
@@ -86,3 +86,6 @@ class TestFitLineTo(unittest.TestCase):
             fit_line, variance = fitLineTo(line_cloud)
 
             self.assertTrue(np.all(fit_line == ax) or np.all((-1 * fit_line) == ax))
+
+if __name__ == '__main__':
+    unittest.main()

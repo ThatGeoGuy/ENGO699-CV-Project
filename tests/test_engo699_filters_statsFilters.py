@@ -71,10 +71,13 @@ class TestNonPlanarOutlierFilter(unittest.TestCase):
         npof = NonPlanarOutlierFilter(pt_cloud, K, threshold)
 
         self.assertEqual(K, npof.K)
-        self.assertEqual(threshold == npof.threshold)
+        self.assertEqual(threshold, npof.threshold)
         self.assertTrue(np.all(pt_cloud == npof.pts))
 
     def test_filterPoints(self):
         """
         Tests that the filter algorithm works as intended.
         """
+
+if __name__ == '__main__':
+    unittest.main()

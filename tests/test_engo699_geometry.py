@@ -37,3 +37,7 @@ class test_centroid(unittest.TestCase):
 
         self.assertTupleEqual(centroid(pts).shape, expected_centroid.shape)
         self.assertTrue(np.all(centroid(pts) == expected_centroid))
+
+
+if __name__ == '__main__':
+    unittest.main()
