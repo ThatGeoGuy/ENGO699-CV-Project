@@ -42,7 +42,7 @@ def createCube(dimension, scale, centroid = None):
     pts   = np.array(list(product(space, repeat=3)))
     return centroid - pts
 
-def createPlane(dimension, scale, normal=None, centroid = None):
+def createPlane(dimension, scale, normal=None, centroid = None, tolerance = None):
     """
     Creates a plane of points, centred about the three-vector specified
     by centroid, with the length of a side of the plane equal to `scale`
@@ -59,6 +59,9 @@ def createPlane(dimension, scale, normal=None, centroid = None):
 
       centroid:     optional parameter. Specifies the point with which
                     the plane is centred about.
+
+      tolerance:    Any absolute value less than this after the resulting
+                    plane rotation will be set to zero.
 
     Returns
     =======
@@ -77,17 +80,21 @@ def createPlane(dimension, scale, normal=None, centroid = None):
     else:
         centroid = np.array(centroid)
 
+    # This is so small floating point errors are removed.
+    if tolerance is None:
+        tolerance = 1e-12
+
     space = list(np.linspace(-scale / 2, scale / 2, dimension))
     pts   = np.array(list(product(space, repeat=2)))
     pts   = centroid - np.append(pts, np.zeros((len(pts), 1)), axis=1)
 
     # Compute the Exponential Map
+    # The second axis is [0,0,1] because that's the default rotation for the
+    # plane that is created.
     axis = np.cross([0,0,1], normal)
     angle = np.arccos(np.dot([0,0,1], normal)) * 180 / np.pi # for degrees
 
-    if angle == 0:
-        return pts
-
     M = RotationMatrix.fromExponentialMap(angle, axis)
     pts = np.transpose(np.dot(M, pts.T))
+    pts[np.abs(pts) < tolerance] = 0
     return pts

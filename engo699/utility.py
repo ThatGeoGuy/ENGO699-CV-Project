@@ -81,6 +81,12 @@ class RotationMatrix(object):
         """
         Generates a 3D rotation matrix from a Quaternion.
         """
+        normalize = np.linalg.norm([q0, q1, q2, q3], 2)
+        q0 /= normalize
+        q1 /= normalize
+        q2 /= normalize
+        q3 /= normalize
+
         M = np.zeros((3,3))
         M[0, 0] = (q0 ** 2) + (q1 ** 2) - (q2 ** 2) - (q3 ** 2)
         M[0, 1] = 2 * (q1 * q2 - q0 * q3)
@@ -91,3 +97,4 @@ class RotationMatrix(object):
         M[2, 0] = 2 * (q1 * q3 - q0 * q2)
         M[2, 1] = 2 * (q2 * q3 + q0 * q1)
         M[2, 2] = (q0 ** 2) - (q1 ** 2) - (q2 ** 2) + (q3 ** 2)
+        return M
