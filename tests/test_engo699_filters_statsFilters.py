@@ -78,6 +78,8 @@ class TestNonPlanarOutlierFilter(unittest.TestCase):
         """
         Tests that the filter algorithm works as intended.
         """
+        # First we need to make a point cloud that is a plane
+        # for this we'll need to use the engo699.shapes module
 
 if __name__ == '__main__':
     unittest.main()
