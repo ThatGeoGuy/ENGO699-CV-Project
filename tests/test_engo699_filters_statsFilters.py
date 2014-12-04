@@ -28,14 +28,14 @@ class TestRadialOutlierFilter(unittest.TestCase):
 
         rof = RadialOutlierFilter(pt_cloud, K, radius)
 
-        assert K == rof.K
-        assert radius == rof.radius
-        assert np.all(pt_cloud == rof.pts)
-        assert filtered_indices == rof.filtered_indices
+        self.assertEqual(K, rof.K)
+        self.assertEqual(radius, rof.radius)
+        self.assertTrue(np.all(pt_cloud == rof.pts))
+        self.assertEqual(filtered_indices, rof.filtered_indices)
 
     def test_filterPoints(self):
         """
-        Should filter only points that are outliers.
+        Tests that the filter algorithm works as intended.
 
         The filter should not filter points that are obviously within the radius,
         but should filter points outside that radius. In this case, only one
@@ -51,15 +51,15 @@ class TestRadialOutlierFilter(unittest.TestCase):
         rof = RadialOutlierFilter(pt_cloud, K, radius)
         filtered_cloud = rof.filterPoints()
 
-        assert len(filtered_cloud) == len(pt_cloud) - 1
-        assert np.all(filtered_cloud == pt_cloud[:-1, :])
-        assert np.all(pt_cloud[rof.filtered_indices] == np.array([100,100,100]))
+        self.assertEqual(len(filtered_cloud), len(pt_cloud) - 1)
+        self.assertTrue(np.all(filtered_cloud == pt_cloud[:-1, :]))
+        self.assertTrue(np.all(pt_cloud[rof.filtered_indices] == np.array([100,100,100])))
 
 class TestNonPlanarOutlierFilter(unittest.TestCase):
     """
     Tests the NonPlanarOutlierFilter class.
     """
-    
+
     def test_initializes(self):
         """
         Tests that the class initializes member slots properly.
@@ -67,9 +67,14 @@ class TestNonPlanarOutlierFilter(unittest.TestCase):
         K = 8
         threshold = 0.50
         pt_cloud = createCube(10, 10)
-        
+
         npof = NonPlanarOutlierFilter(pt_cloud, K, threshold)
 
-        assert K == npof.K
-        assert threshold == npof.threshold
-        assert np.all(pt_cloud == npof.pts)
+        self.assertEqual(K, npof.K)
+        self.assertEqual(threshold == npof.threshold)
+        self.assertTrue(np.all(pt_cloud == npof.pts))
+
+    def test_filterPoints(self):
+        """
+        Tests that the filter algorithm works as intended.
+        """
