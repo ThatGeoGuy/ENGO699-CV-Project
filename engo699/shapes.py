@@ -42,7 +42,7 @@ def createCube(dimension, scale, centroid = None):
     pts   = np.array(list(product(space, repeat=3)))
     return centroid - pts
 
-def createPlane(dimension, scale, normal=None, centroid = None, tolerance = None):
+def createSquarePlane(dimension, scale, normal=None, centroid = None, tolerance = None):
     """
     Creates a plane of points, centred about the three-vector specified
     by centroid, with the length of a side of the plane equal to `scale`
@@ -73,7 +73,7 @@ def createPlane(dimension, scale, normal=None, centroid = None, tolerance = None
         normal = np.array([0,0,1])
     else:
         normal = np.array(normal)
-        normal /= np.linalg.norm(normal, 2)
+        normal = normal / np.linalg.norm(normal, 2)
 
     if centroid is None:
         centroid = np.array([0,0,0])

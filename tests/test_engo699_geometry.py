@@ -29,6 +29,8 @@ class test_centroid(unittest.TestCase):
         """
         Test if the centroid is the mean of the column.
         This is somewhat of a stupid test but it's more of a sanity check.
+        This test did fail once when I refactored the centroid function with ufuncs,
+        so that's cool.
         """
         pts = np.random.randn(200, 3)
         expected_centroid = np.array(
@@ -36,7 +38,9 @@ class test_centroid(unittest.TestCase):
         )
 
         self.assertTupleEqual(centroid(pts).shape, expected_centroid.shape)
-        self.assertTrue(np.all(centroid(pts) == expected_centroid))
+        # Hurr muh floating point number errors
+        # Goddamn numpy why is this even a problem?
+        self.assertTrue(np.all(np.abs(centroid(pts) - expected_centroid) < 1e-14))
 
 
 if __name__ == '__main__':

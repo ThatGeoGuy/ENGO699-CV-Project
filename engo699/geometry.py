@@ -26,4 +26,4 @@ def centroid(array_like):
       centroid:     A single row vector (numpy) that contains the centroid (mean) of
                     each dimension.
     """
-    return np.array([np.mean(row) for row in array_like.T])
+    return np.mean(np.array(array_like), axis=0)
