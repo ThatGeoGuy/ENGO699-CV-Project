@@ -9,7 +9,7 @@ Tests the statistical filters module.
 import unittest
 import numpy as np
 
-from engo699.shapes import createCube
+from engo699.shapes import createCube, createSquarePlane
 from engo699.filters import RadialOutlierFilter, NonPlanarOutlierFilter
 
 class TestRadialOutlierFilter(unittest.TestCase):
@@ -46,14 +46,14 @@ class TestRadialOutlierFilter(unittest.TestCase):
         pt_cloud = createCube(10, 0.100)
 
         # Append a point that's way far away
-        pt_cloud = np.append(pt_cloud, np.array([[100,100,100]]), axis=0)
+        noisy_cloud = np.append(pt_cloud, np.array([[100,100,100]]), axis=0)
 
-        rof = RadialOutlierFilter(pt_cloud, K, radius)
+        rof = RadialOutlierFilter(noisy_cloud, K, radius)
         filtered_cloud = rof.filterPoints()
 
-        self.assertEqual(len(filtered_cloud), len(pt_cloud) - 1)
-        self.assertTrue(np.all(filtered_cloud == pt_cloud[:-1, :]))
-        self.assertTrue(np.all(pt_cloud[rof.filtered_indices] == np.array([100,100,100])))
+        self.assertEqual(len(filtered_cloud), len(pt_cloud))
+        self.assertTrue(np.all(filtered_cloud == pt_cloud))
+        self.assertTrue(np.all(noisy_cloud[rof.filtered_indices] == np.array([100,100,100])))
 
 class TestNonPlanarOutlierFilter(unittest.TestCase):
     """
@@ -78,8 +78,18 @@ class TestNonPlanarOutlierFilter(unittest.TestCase):
         """
         Tests that the filter algorithm works as intended.
         """
-        # First we need to make a point cloud that is a plane
-        # for this we'll need to use the engo699.shapes module
+        # Create a plane
+        plane_pts = createSquarePlane(10, 10)
+        noisy_pts = np.append(plane_pts, [[100, 100, 100], [101,100,101]], axis=0)
+
+        # Ideally only our two points that were added should be outliers
+        K = 8
+        threshold = 0.01
+        npof = NonPlanarOutlierFilter(noisy_pts, K, threshold)
+        filtered_cloud = npof.filterPoints()
+
+        self.assertEqual(len(npof.filtered_indices), 2)
+        self.assertEqual(len(filtered_cloud), len(plane_pts))
 
 if __name__ == '__main__':
     unittest.main()

@@ -12,6 +12,8 @@ property of having K nearest neighbours within a given radius.
 import numpy as np
 from scipy import spatial
 
+from engo699.fitting import fitPlaneTo
+
 class RadialOutlierFilter(object):
     """
     Removes outliers in point cloud data. A point is determined
@@ -47,6 +49,7 @@ class RadialOutlierFilter(object):
         which points we keep and which we filter.
         """
         self.filtered_indices = []
+        ret_indices = []
         for i, pt in enumerate(self.pts):
             dists, nn_indices = self.kdtree.query(
                     pt, k=self.K, p=2, distance_upper_bound=self.radius)
@@ -55,11 +58,15 @@ class RadialOutlierFilter(object):
             # and only 5 nearest neighbours within the distance_upper_bound
             # are found, then the rest of the distances in dists will be
             # represented by np.Inf. We can test for these via np.isinf
-            if (len(dists) - len(dists[np.isinf(dists)])) < self.K:
+            if (len(dists) - len(dists[np.isinf(dists)])) >= self.K:
+                ret_indices.append(i)
+            else:
                 self.filtered_indices.append(i)
 
-        return self.pts[
-                np.all(self.pts != self.pts[self.filtered_indices, :], axis=1), :].copy()
+        if self.filtered_indices:
+            return self.pts[ret_indices, :].copy()
+        else:
+            return self.pts.copy()
 
     def numPointsFiltered(self):
         """
@@ -106,13 +113,18 @@ class NonPlanarOutlierFilter(object):
         the point.
         """
         self.filtered_indices = []
+        ret_indices = []
         for i, pt in enumerate(self.pts):
             dists, nn_indices = self.kdtree.query(pt, k=self.K)
 
-            normal, variance = fitToPlane(self.pts[nn_indices, :])
+            normal, variance = fitPlaneTo(self.pts[nn_indices, :])
 
-            if variance > self.threshold:
-                self.filtered_indices = []
+            if variance < self.threshold:
+                ret_indices.append(i)
+            else:
+                self.filtered_indices.append(i)
 
-        return self.pts[
-                np.all(self.pts != self.pts[self.filtered_indices, :], axis=1), :].copy()
+        if self.filtered_indices:
+            return self.pts[ret_indices, :].copy()
+        else:
+            return self.pts.copy()

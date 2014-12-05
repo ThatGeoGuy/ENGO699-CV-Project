@@ -45,7 +45,7 @@ class TestFitPlaneTo(unittest.TestCase):
         for plane_cloud, ax in zip(planes, axes):
             fitNormal, variance = fitPlaneTo(plane_cloud)
 
-            self.assertTrue(np.all(fitNormal == ax) or np.all((-1 * fitNormal) == ax))
+            self.assertTrue(np.all(fitNormal - ax < 1e-14) or np.all((-1 * fitNormal) - ax < 1e-14))
 
     def test_fitPlaneTo_insufficient_points(self):
         """
