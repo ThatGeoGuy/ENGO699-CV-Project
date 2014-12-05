@@ -95,6 +95,12 @@ class TestCreateSquarePlane(unittest.TestCase):
 
         plane_pts = createSquarePlane(dim, scale, normal=normal)
 
+        # Order is not guaranteed when createSquarePlane is used, so
+        # it's easier to test if all of the expected points in grid
+        # are in the plane points from the function, and vice versa.
+        # This guarantees that neither is a subset of the other, while
+        # still checking that all the points expected are present in
+        # the output
         for pt in grid:
             self.assertTrue(pt in plane_pts)
 
@@ -103,6 +109,17 @@ class TestCreateSquarePlane(unittest.TestCase):
 
         self.assertTrue(np.all(normal == fitPlaneTo(plane_pts)[0]))
         self.assertTrue(np.all(normal == fitPlaneTo(grid)[0]))
+
+    def test_createSquarePlane_noDuplicatePoints(self):
+        """
+        Ensures that the function does not compute duplicate points in the resultant cloud.
+        """
+        dim = 8
+        scale = 100
+        plane_pts = createSquarePlane(dim, scale)
+
+        point_tuple_set = {tuple(row) for row in plane_pts}
+        self.assertEqual(len(point_tuple_set), len(plane_pts))
 
 if __name__ == '__main__':
     unittest.main()
