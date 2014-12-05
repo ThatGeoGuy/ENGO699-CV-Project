@@ -52,13 +52,16 @@ class RadialOutlierFilter(object):
         ret_indices = []
         for i, pt in enumerate(self.pts):
             dists, nn_indices = self.kdtree.query(
-                    pt, k=self.K, p=2, distance_upper_bound=self.radius)
+                    pt, k=(self.K + 1), p=2, distance_upper_bound=self.radius)
 
             # If we ask for e.g. 20 neighbours when we query for points,
             # and only 5 nearest neighbours within the distance_upper_bound
             # are found, then the rest of the distances in dists will be
             # represented by np.Inf. We can test for these via np.isinf
-            if (len(dists) - len(dists[np.isinf(dists)])) >= self.K:
+            #
+            # NOTE: the -1 is because the point itself will return as a
+            # nearest neighbour match (because the distance is zero!!!)
+            if (len(dists) - len(dists[np.isinf(dists)]) - 1) >= self.K:
                 ret_indices.append(i)
             else:
                 self.filtered_indices.append(i)
@@ -115,7 +118,7 @@ class NonPlanarOutlierFilter(object):
         self.filtered_indices = []
         ret_indices = []
         for i, pt in enumerate(self.pts):
-            dists, nn_indices = self.kdtree.query(pt, k=self.K)
+            dists, nn_indices = self.kdtree.query(pt, k=(self.K + 1))
 
             normal, variance = fitPlaneTo(self.pts[nn_indices, :])
 
