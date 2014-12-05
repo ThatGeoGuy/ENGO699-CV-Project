@@ -10,22 +10,21 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 from engo699.filters.WLOP import WLOP
+from engo699.shapes import createCube
 
 def main(filepath):
     pts = np.loadtxt(filepath)[:,:-1]
-    template = WLOP(pts, 0.00001, 20)
-    projected_pts = template.computeProjection(int(pts.shape[0] * 0.65), 0.080, 0.48)
+
+    ## WLOP Stuff
+    # template = WLOP(pts, 0.0001, 20)
+    # projected_pts = template.computeProjection(6000, 1.100, 0.45)
 
     # Plot both point cloud and projected point cloud
-    fig1 = plt.figure(1)
-    ax = fig1.add_subplot(111, projection='3d')
+    # fig1 = plt.figure(1)
+    # ax = fig1.add_subplot(111, projection='3d')
     # plt.plot(pts[:,0], pts[:,1], pts[:,2], 'bo')
-    plt.plot(projected_pts[:,0], projected_pts[:,1], projected_pts[:,2], 'ro')
-    plt.show()
-
-    # DEBUG
-    print("Writing projected points to D:/walking_projection.txt", file=sys.stderr)
-    np.savetxt("D:/walking_projection.txt", projected_pts)
+    # plt.plot(projected_pts[:,0], projected_pts[:,1], projected_pts[:,2], 'ro')
+    # plt.show()
 
     return 0
 

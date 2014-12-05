@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # engo699/filters/WLOP.py
 # Jeremy Steward
-# Code to perform the Weighted Locally Optimal Projection
 
-__doc__ = """
+"""
 This module defines functions / classes in order to perform the weighted
 locally optimal projection.
 """
@@ -24,40 +23,47 @@ class WLOP(object):
     def theta(r, h):
         return np.exp(-1 * ((4 * r) / h) ** 2)
 
-    @staticmethod
-    def eta(r):
+    # Normal methods
+    def eta(self, r):
         return -r
 
-    @staticmethod
-    def deta_dr(r):
-        return -1
+    def deta_dr(self, r):
+        return -1 * np.ones(r.shape)
 
-    # Normal methods
-    def alpha_ij(self, xi, pj):
-        r = np.linalg.norm(xi - pj, 2)
-        return WLOP.theta(r, self.h) / r
+    def alpha_ij(self, r_xi_to_pj):
+        r_xi_to_pj[r_xi_to_pj == 0] = np.nan
+        return WLOP.theta(r_xi_to_pj, self.h) / r_xi_to_pj
 
-    def beta_ij(self, xi, xii):
-        r = np.linalg.norm(xi - xii, 2)
-        return WLOP.theta(r, self.h) * abs(WLOP.deta_dr(r)) / r
+    def beta_ij(self, r_xi_to_xii):
+        r_xi_to_xii[r_xi_to_xii == 0] = np.nan
+        return WLOP.theta(r_xi_to_xii, self.h) * \
+                np.abs(self.deta_dr(r_xi_to_xii)) / r_xi_to_xii
 
-    # Weight function for E1 terms
-    def v_j(self, pj):
-        return 1 + np.sum(WLOP.theta(np.linalg.norm(pj - p, 2), self.h) for p in self.P)
+    # Weight function
+    def weight_ij(self, r_xi_to_xii):
+        r_xi_to_xii[r_xi_to_xii == 0] = np.nan
+        return (1 / (len(r_xi_to_xii) - 1)) + WLOP.theta(r_xi_to_xii, self.h)
 
-    # Weight function for E2 terms
-    def w_i(self, i, xi, X):
-        return 1 + np.sum(WLOP.theta(np.linalg.norm(xi - xj, 2), self.h) \
-                for j, xj in enumerate(X) if i != j)
+    def computePDistances(self):
+        d = np.zeros((len(self.P), len(self.P)))
+        # Yes I know I should use enumerate but there's no reason
+        # here to allocate for pi and pj every iteration when I can
+        # shave off precious runtime
+        for i in range(0, len(self.P)):
+            for j in range(i, len(self.P)):
+                d[i, j] = np.linalg.norm(self.P[i, :] - self.P[j, :], 2)
+            d[:, i] = d[i, :]
+        return d
 
     def getInitialPoints(self):
+        # Initial set of points
         X = createCube(
-            int(self.num_pts ** (1 / 3)),
-            (1 - self.h) / (1 + self.h),
+            np.ceil(self.num_pts ** (1 / 3)),
+            self.h,
             centroid(self.P)
         )
-        # X = self.P
-        return X[:self.num_pts, :]
+        X = X[:self.num_pts, :]
+        return X
 
     def computeProjection(self, num_pts, h, mu):
         """
@@ -79,7 +85,7 @@ class WLOP(object):
         """
         # This initialization is necessary to make some of the interim
         # functions simpler / easier
-        if mu < 0 or mu >= 0.5:
+        if not (0 <= mu < 0.50):
             print("ERROR: WLOP - mu must be in range [0, 0.5)", file=sys.stderr)
             return None
         self.h       = h
@@ -88,40 +94,63 @@ class WLOP(object):
 
         # Create initial X at iteration 0
         X = self.getInitialPoints()
-        Q = X.copy()
+        Q = np.zeros(X.shape)
 
-        # The following calculates X at iteration 1
-        for i, xi in enumerate(X):
-            thetas = np.array([WLOP.theta(np.linalg.norm(pj - xi), self.h) for pj in self.P])
-            numer = np.sum(pj * thetas[j] for j, pj in enumerate(self.P))
-            denom = np.sum(thetas)
-
-            Q[i, :] = numer / denom
+        # This never changes, will only be computed once at the beginning
+        dist_pj_pjj = self.computePDistances()
+        # Below is an optimization instead of the list-comprehension (since
+        # there doesn't exist a numpy array comprehension)
+        v = np.zeros((len(dist_pj_pjj), len(dist_pj_pjj)))
+        for i, dist in enumerate(dist_pj_pjj):
+            v[i, :] = self.weight_ij(dist)
+        v = np.nansum(v, axis=1)
 
         # The remaining iterations until convergence
         # Up until here, nothing is different from standard LOP
         it = 0
-        while np.any((Q - X) > self.TOL):
-            X = Q.copy()
-            for i, xi in enumerate(X):
-                # Calculate E1 term
-                alpha_over_vj = [self.alpha_ij(xi, pj) / self.v_j(pj) \
-                        for pj in self.P]
-                E1 = sum(pj * alpha_over_vj[j] / sum(alpha_over_vj) for j, pj in enumerate(self.P))
-
-                # Calculate E2 term
-                beta_times_wi = [self.beta_ij(xi, xii) * self.w_i(i, xi, X) \
-                        for ii, xii in enumerate(X) if i != ii]
-                E2 = sum((xi - xii) * beta_times_wi[ii] / sum(beta_times_wi) for ii, xii in X)
-                Q[i, :] = E1 + self.mu * E2
-
+        while np.any(np.abs(Q - X) > self.TOL):
             if it >= self.MAX_ITER:
                 print("WARNING: WLOP - Reached max number of iterations.", file=sys.stderr)
                 print("WARNING: WLOP - Breaking loop and returning current projection.", file=sys.stderr)
                 break
-            it += 1
 
-        print("Completed projection with {} iterations".format(it), file=sys.stderr)
+            for i, xi in enumerate(X):
+                dist_xi_pj  = np.linalg.norm(xi - self.P, 2, axis=1)
+                diff_xi_xii = xi - X
+                dist_xi_xii = np.linalg.norm(diff_xi_xii, 2, axis=1)
+
+                # (re)set our E1 and E2 terms to zero after each point calculation
+                E1 = np.zeros(3)
+                E2 = np.zeros(3)
+
+                # a = alpha, b = beta
+                a = self.alpha_ij(dist_xi_pj)
+                b = self.beta_ij(dist_xi_xii)
+
+                # Weights E1 -> v, E2 -> w
+                # v is below since it relies on the point pj
+                w = self.weight_ij(dist_xi_xii)
+                alpha_over_v = a / v
+                beta_times_w = b * w
+
+                for j, pj in enumerate(self.P):
+                    if np.isnan(alpha_over_v[j]):
+                        continue
+
+                    # Calculate E1
+                    E1 += pj * (alpha_over_v[j] / np.nansum(alpha_over_v))
+
+                for ii, diff_ii in enumerate(diff_xi_xii):
+                    if np.isnan(beta_times_w[ii]):
+                        continue
+
+                    # Calculate E2
+                    E2 += diff_ii * (beta_times_w[ii] / np.nansum(beta_times_w))
+
+                Q[i, :] = E1 + self.mu * E2
+            # Increment iterations and go to next iteration over point cloud
+            it += 1
+            X = Q.copy()
         return Q
 
     # Below are "off limits" methods. These shouldn't be called directly
@@ -152,23 +181,3 @@ class WLOP(object):
         self.P        = pt_cloud.copy()
         self.TOL      = tolerance
         self.MAX_ITER = max_iter
-
-class LOP(WLOP):
-    """
-    Locally optimal projection as referenced by Lipman et al. All parameters
-    are weighted equally, and the eta function falls off much more slowly.
-    """
-    @staticmethod
-    def eta(r):
-        return 1 / (3 * (r ** 3))
-
-    @staticmethod
-    def deta_dr(r):
-        return -1 / (r ** 4)
-
-    # Both weighting factors are just equal to 1
-    def v_j(self, pj):
-        return 1
-
-    def w_i(self, i, xi, X):
-        return 1
