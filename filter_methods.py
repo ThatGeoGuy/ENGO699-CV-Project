@@ -83,8 +83,8 @@ def main(filepath, output_dir):
 
     final_pts = np.append(final_pts, filter1, axis=0)
     final_pts = np.append(final_pts, filter2, axis=0)
-    np.savetxt(os.path.join("final.txt"), rof_2.filterPoints())
-    np.savetxt(os.path.join("final_with_colors.txt"), final_pts)
+    np.savetxt(os.path.join(output_dir, "final.txt"), rof_2.filterPoints())
+    np.savetxt(os.path.join(output_dir, "final_with_colors.txt"), final_pts)
     ###################################################################
 
     return 0
