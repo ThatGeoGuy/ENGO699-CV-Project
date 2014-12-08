@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# engo699/fitting/linearFitting.py
+# tests/test_engo699_fitting_linearFitting.py
 # Jeremy Steward
 
 """
@@ -16,7 +16,7 @@ class TestFitPlaneTo(unittest.TestCase):
     Tests the function fitPlaneTo from the fitting module.
     """
 
-    def test_fitPlaneTo_cardinal_planes(self):
+    def testFitPlaneToCardinalPlanes(self):
         """
         Cardinal plane data should have a unit normal in the direction of the orthogonal axis.
         """
@@ -47,7 +47,7 @@ class TestFitPlaneTo(unittest.TestCase):
 
             self.assertTrue(np.all(fitNormal - ax < 1e-14) or np.all((-1 * fitNormal) - ax < 1e-14))
 
-    def test_fitPlaneTo_insufficient_points(self):
+    def testFitPlaneToInsufficientPoints(self):
         """
         Trying to fit a plane when there are only two points should be an error.
         """
@@ -57,7 +57,7 @@ class TestFitLineTo(unittest.TestCase):
     Tests the function fitLineTo from the fitting module.
     """
 
-    def test_fitLineTo_cardinal_axes(self):
+    def testFitLineToCardinalAxes(self):
         """
         Line data along the cardinal axes should fit to the axis itself.
         """

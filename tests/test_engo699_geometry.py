@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # tests/test_engo699_geometry.py
 # Jeremy Steward
-# Tests the functionality in engo699/geometry.py
+
+"""
+Tests the functionality in engo699/geometry.py
+"""
 
 import unittest
 import numpy as np
@@ -15,7 +18,7 @@ class test_centroid(unittest.TestCase):
     Tests for the function "centroid."
     Test descriptions are in the docstring of each member function.
     """
-    def test_centroid_of_zeros(self):
+    def testCentroidOfZeros(self):
         """
         The centroid of a set of points that are all at the origin should be zero.
         """
@@ -25,7 +28,7 @@ class test_centroid(unittest.TestCase):
         self.assertTupleEqual(centroid(pts_at_origin).shape, expected_centroid.shape)
         self.assertTrue(np.all(centroid(pts_at_origin) == expected_centroid))
 
-    def test_centroid_is_mean(self):
+    def testCentroidIsMean(self):
         """
         Test if the centroid is the mean of the column.
         This is somewhat of a stupid test but it's more of a sanity check.
