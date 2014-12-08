@@ -54,12 +54,10 @@ class TestCreateCube(unittest.TestCase):
         """
         side_length = 8
         extent      = 100
-        pts         = createCube(dim, scale)
+        pts         = createCube(side_length, extent)
 
         point_set = {tuple(row) for row in pts}
-        self.assertEqual(len(point_set), len(plane_pts))
-
-
+        self.assertEqual(len(point_set), len(pts))
 
 class TestCreateSquarePlane(unittest.TestCase):
     """
