@@ -13,5 +13,10 @@ class TestISSKeypointDetector(unittest.TestCase):
     Tests the ISSKeypointDetector class.
     """
 
+    def testInitializes(self):
+        """
+        Tests that the object initializes properly.
+        """
+
 if __name__ == "__main__":
     unittest.main()
