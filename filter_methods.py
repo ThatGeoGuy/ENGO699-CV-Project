@@ -97,8 +97,8 @@ if __name__ == "__main__":
     # Positional arguments
     parser.add_argument("filepath", type=str,
             help="path to the point cloud file you wish to process.")
-    parser.add_argument("-o", type=str,
+    parser.add_argument("-o", type=str, dest="output_dir",
             help="specify a folder for the OUTPUT of the program.")
 
     args = parser.parse_args()
-    main(args.filepath, output_dir)
+    main(args.filepath, args.output_dir)
