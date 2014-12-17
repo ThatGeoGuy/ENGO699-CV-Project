@@ -150,7 +150,8 @@ class SURF3DKeypointDetector(object):
         haar2zy = SURF3DKeypointDetector.haar2("z", "y")
 
         for n in self.num_scales:
-            current_vdim = self.vdim / (2 ** n)
+            scale = 2 ** n
+            current_vdim = self.vdim / scale
             voxels = self.voxelizePoints(current_vdim)
 
             # Haar wavelet 1
@@ -177,16 +178,22 @@ class SURF3DKeypointDetector(object):
 
                         saliencies[i,j,k] = np.linalg.det(H)
 
-            for i in range(1, current_vdim - 1):
-                for j in range(1, current_vdim - 1):
-                    for k in range(1, current_vdim - 1):
-                        if not np.all(saliencies[i,j,k] >= saliencies[i-1:i+2, j-1:j+2, k-1:k+2]):
-                            saliencies[i,j,k] = 0
-
             # TODO: Clean this up, possibly don't recompute after calling voxelizePoints
             vox_width = self.extent / current_vdim
             xmin = self.centroid[0] - (self.extent / 2)
             ymin = self.centroid[1] - (self.extent / 2)
             zmin = self.centroid[2] - (self.extent / 2)
 
-        return
+            keypoints = []
+            for i in range(1, current_vdim - 1):
+                for j in range(1, current_vdim - 1):
+                    for k in range(1, current_vdim - 1):
+                        if np.all(saliencies[i,j,k] >= saliencies[i-1:i+2, j-1:j+2, k-1:k+2]):
+                            # Plus 0.5 because we want the middle of the voxel
+                            # location, which is 50% of the voxel width.
+                            xnew = ((i + 0.5) * vox_width) + xmin
+                            ynew = ((j + 0.5) * vox_width) + ymin
+                            znew = ((k + 0.5) * vox_width) + zmin
+
+                            keypoints.append([xnew, ynew, znew, scale])
+        return np.array(keypoints)[:,:3], np.array(keypoints)[:,4]
