@@ -39,7 +39,7 @@ def main(original_dir, filename):
     rof = RadialOutlierFilter(xyz, 8, 0.040)
     xyz_filtered = rof.filterPoints()
 
-    s3d = SURF3DKeypointDetector(xyz_filtered, 3, 256)
+    s3d = SURF3DKeypointDetector(xyz_filtered, 3, 2, 256)
     keypoints, scales = s3d.detectKeypoints()
 
     camera_keypoints = [[] for _ in range(len(camera_amp_data))]
