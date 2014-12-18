@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # tests/test_engo699_shapes.py
 # Jeremy Steward
-# Tests the functionality in engo699/shapes.py
+
+"""
+Tests the functionality in engo699/shapes.py
+"""
 
 import unittest
 import numpy as np
@@ -15,8 +18,9 @@ class TestCreateCube(unittest.TestCase):
     Tests for the function "createCube."
     """
 
-    def test_createCube_output_should_be_Nx3(self):
+    def testCreateCubeOutputShouldBeNx3(self):
         """
+        Tests that the ouput of createCube is an Nx3 matrix.
         The output from WLOP should be an Nx3 matrix, where N is the
         cube of the side-length. e.g. if side-length = 3, then N should
         be 3 ** 3 => 27
@@ -27,8 +31,9 @@ class TestCreateCube(unittest.TestCase):
 
         self.assertEqual(pts.shape[0], side_length ** 3)
 
-    def test_createCube_cube_centred_on_centroid(self):
+    def testCreateCubeCentredOnCentroid(self):
         """
+        Tests that the centroid of a set of known points is the mean X,Y,Z coordinate.
         The centroid of all the points in the cube output by the
         function should be the same as the centroid passed into the
         function.
@@ -43,12 +48,23 @@ class TestCreateCube(unittest.TestCase):
             centroid
         )
 
+    def testCreateCubeNoDuplicatePoints(self):
+        """
+        Tests that the createCube function does not return duplicate points.
+        """
+        side_length = 8
+        extent      = 100
+        pts         = createCube(side_length, extent)
+
+        point_set = {tuple(row) for row in pts}
+        self.assertEqual(len(point_set), len(pts))
+
 class TestCreateSquarePlane(unittest.TestCase):
     """
     Tests for the function "createSquarePlane."
     """
 
-    def test_createSquarePlane_outputPlaneMatchesInputNormal(self):
+    def testCreateSquarePlaneOutputPlaneMatchesInputNormal(self):
         """
         Tests whether the plane normal of the output plane matches the normal requested by input.
         """
@@ -61,7 +77,7 @@ class TestCreateSquarePlane(unittest.TestCase):
 
         self.assertTrue(np.all(normal == surface_normal))
 
-    def test_createSquarePlane_outputPlaneAboutInputCentroid(self):
+    def testCreateSquarePlaneOutputPlaneAboutInputCentroid(self):
         """
         Tests whether the output plane is centred about the input centroid.
         """
@@ -74,7 +90,7 @@ class TestCreateSquarePlane(unittest.TestCase):
 
         self.assertTrue(np.all(cent == calculated_centroid))
 
-    def test_createSquarePlane_testPlaneMatchesFunctionOutput(self):
+    def testCreateSquarePlaneTestPlaneMatchesFunctionOutput(self):
         """
         Test to make sure that the function outputs all the points in a square grid
         and that the normal is [0,0,1]
@@ -110,9 +126,9 @@ class TestCreateSquarePlane(unittest.TestCase):
         self.assertTrue(np.all(normal == fitPlaneTo(plane_pts)[0]))
         self.assertTrue(np.all(normal == fitPlaneTo(grid)[0]))
 
-    def test_createSquarePlane_noDuplicatePoints(self):
+    def testCreateSquarePlaneNoDuplicatePoints(self):
         """
-        Ensures that the function does not compute duplicate points in the resultant cloud.
+        Tests that the function does not compute duplicate points in the resultant cloud.
         """
         dim = 8
         scale = 100

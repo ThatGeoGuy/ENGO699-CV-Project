@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# tests/test_engo699_filters_radial_outlier_filter.py
+# tests/test_engo699_filters_statsFilters.py
 # Jeremy Steward
 
 """
@@ -17,7 +17,7 @@ class TestRadialOutlierFilter(unittest.TestCase):
     Tests the RadialOutlierFilter class.
     """
 
-    def test_initializes(self):
+    def testInitializes(self):
         """
         Tests that the class initializes member slots properly.
         """
@@ -33,7 +33,7 @@ class TestRadialOutlierFilter(unittest.TestCase):
         self.assertTrue(np.all(pt_cloud == rof.pts))
         self.assertEqual(filtered_indices, rof.filtered_indices)
 
-    def test_filterPoints(self):
+    def testFilterPoints(self):
         """
         Tests that the filter algorithm works as intended.
 
@@ -60,7 +60,7 @@ class TestNonPlanarOutlierFilter(unittest.TestCase):
     Tests the NonPlanarOutlierFilter class.
     """
 
-    def test_initializes(self):
+    def testInitializes(self):
         """
         Tests that the class initializes member slots properly.
         """
@@ -74,7 +74,7 @@ class TestNonPlanarOutlierFilter(unittest.TestCase):
         self.assertEqual(threshold, npof.threshold)
         self.assertTrue(np.all(pt_cloud == npof.pts))
 
-    def test_filterPoints(self):
+    def testFilterPoints(self):
         """
         Tests that the filter algorithm works as intended.
         """

@@ -26,6 +26,7 @@ class RadialOutlierFilter(object):
         self.radius           = radius
         self.kdtree           = spatial.KDTree(points)
         self.filtered_indices = None
+        return
 
     @property
     def pts(self):
@@ -93,6 +94,7 @@ class NonPlanarOutlierFilter(object):
         self.K = K
         self.kdtree = spatial.KDTree(points)
         self.threshold = threshold
+        return
 
     @property
     def pts(self):
@@ -131,3 +133,12 @@ class NonPlanarOutlierFilter(object):
             return self.pts[ret_indices, :].copy()
         else:
             return self.pts.copy()
+
+    def numPointsFiltered(self):
+        """
+        Simple function to return the number of points that were filtered.
+        """
+        if self.filtered_indices is None:
+            return None
+        else:
+            return len(self.filtered_indices)
