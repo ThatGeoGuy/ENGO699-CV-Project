@@ -38,7 +38,7 @@ def main(original_dir, filename):
     rof = RadialOutlierFilter(xyz, 8, 0.040)
     xyz_filtered = rof.filterPoints()
 
-    iss = ISSKeypointDetector(xyz_filtered, 8, 0.040, 0.100, 1.4, 1.4)
+    iss = ISSKeypointDetector(xyz_filtered, 8, 0.040, 0.040, 0.975, 0.975)
     keypoints = iss.detectKeypoints()
 
     camera_keypoints = [[] for _ in range(len(camera_amp_data))]

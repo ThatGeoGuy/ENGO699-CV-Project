@@ -19,7 +19,7 @@ class SURF3DKeypointDetector(object):
     keypoint detector.
     """
 
-    def __init__(self, points, num_scales, initial_voxel_dim=256):
+    def __init__(self, points, num_scales, non_maxima_range=1, initial_voxel_dim=256):
         """
         Initializes point cloud data, number of scales, voxel dimensions, and
         then computes the max distance (extent) for our voxel grid.
@@ -27,14 +27,14 @@ class SURF3DKeypointDetector(object):
         self.pts        = points.copy()
         self.num_scales = num_scales
         self.vdim       = initial_voxel_dim
+        self.nonmax_rng = non_maxima_range
 
-        kdt = spatial.KDTree(pts)
+        kdt = spatial.KDTree(points)
         max_dist = 0
-        for pt in points:
-            dists, nn_indices = kdt.query(pt, k=len(points), p=2)
-
-            if np.max(np.abs(dists[np.isfinite(dists)])) > max_dist:
-                max_dist = np.max(np.abs(dists[np.isfinite(dists)]))
+        for i, pt in enumerate(points):
+            if i != len(points) - 1:
+                if np.max(np.linalg.norm(pt - points[i+1:,:], 2, axis=1)) > max_dist:
+                    max_dist = np.max(np.linalg.norm(pt - points, 2, axis=1))
 
         # the extent is 2 times the max dist because it stretches on both sides
         # of the centroid i.e.: Xmin <---------- C ----------> Xmax
@@ -117,7 +117,7 @@ class SURF3DKeypointDetector(object):
         Returns a voxel grid for the point cloud pts.
         Extent should be the full extent across the entire voxel cube.
         """
-        voxels = np.zeroes((vdim, vdim, vdim))
+        voxels = np.zeros((vdim, vdim, vdim))
         vox_width = self.extent / vdim
 
         xmin = self.centroid[0] - (self.extent / 2)
@@ -149,9 +149,9 @@ class SURF3DKeypointDetector(object):
         haar2zx = SURF3DKeypointDetector.haar2("z", "x")
         haar2zy = SURF3DKeypointDetector.haar2("z", "y")
 
-        for n in self.num_scales:
+        for n in range(self.num_scales):
             scale = 2 ** n
-            current_vdim = self.vdim / scale
+            current_vdim = int(self.vdim / scale)
             voxels = self.voxelizePoints(current_vdim)
 
             # Haar wavelet 1
@@ -185,10 +185,11 @@ class SURF3DKeypointDetector(object):
             zmin = self.centroid[2] - (self.extent / 2)
 
             keypoints = []
-            for i in range(1, current_vdim - 1):
-                for j in range(1, current_vdim - 1):
-                    for k in range(1, current_vdim - 1):
-                        if np.all(saliencies[i,j,k] >= saliencies[i-1:i+2, j-1:j+2, k-1:k+2]):
+            m = self.nonmax_rng
+            for i in range(m, current_vdim - m):
+                for j in range(m, current_vdim - m):
+                    for k in range(m, current_vdim - m):
+                        if np.all(saliencies[i,j,k] >= saliencies[i-m:i+m+1, j-m:j+m+1, k-m:k+m+1]):
                             # Plus 0.5 because we want the middle of the voxel
                             # location, which is 50% of the voxel width.
                             xnew = ((i + 0.5) * vox_width) + xmin
@@ -196,4 +197,4 @@ class SURF3DKeypointDetector(object):
                             znew = ((k + 0.5) * vox_width) + zmin
 
                             keypoints.append([xnew, ynew, znew, scale])
-        return np.array(keypoints)[:,:3], np.array(keypoints)[:,4]
+        return np.array(keypoints)[:,:3], np.array(keypoints)[:,3]
